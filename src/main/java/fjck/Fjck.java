@@ -11,6 +11,7 @@ import org.objectweb.asm.Opcodes;
 
 import fjck.ast.Parser;
 import fjck.ast.command.Block;
+import fjck.optimizer.LinearOptimizer;
 
 public class Fjck implements Opcodes {
 	
@@ -39,6 +40,7 @@ public class Fjck implements Opcodes {
 		Block block = Parser.parse(new InputStreamReader(source));
 		source.close();
 		
+		block = LinearOptimizer.optimize(block);
 		Program program = fjck.compiler.Compiler.compileProgram(block);
 		
 		program.execute(

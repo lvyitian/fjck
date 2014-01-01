@@ -12,10 +12,13 @@ import fjck.Program;
 import fjck.ast.command.Add;
 import fjck.ast.command.Block;
 import fjck.ast.command.Command;
+import fjck.ast.command.Copy;
+import fjck.ast.command.CopyMultiply;
 import fjck.ast.command.Loop;
 import fjck.ast.command.Move;
 import fjck.ast.command.Read;
 import fjck.ast.command.Write;
+import fjck.ast.command.Zero;
 
 public class Compiler implements Opcodes {
 	
@@ -135,6 +138,43 @@ public class Compiler implements Opcodes {
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/Writer", "flush", "()V");
 	}
 	
+	private static void buildCopy(MethodVisitor mv, Copy copy) {
+		mv.visitVarInsn(ALOAD, LOCAL_ARRAY);
+		mv.visitVarInsn(ILOAD, LOCAL_POINTER);
+		mv.visitIntInsn(BIPUSH, copy.offset);
+		mv.visitInsn(IADD);
+		mv.visitInsn(DUP2);
+		mv.visitInsn(IALOAD);
+		mv.visitVarInsn(ALOAD, LOCAL_ARRAY);
+		mv.visitVarInsn(ILOAD, LOCAL_POINTER);
+		mv.visitInsn(IALOAD);
+		mv.visitInsn(IADD);
+		mv.visitInsn(IASTORE);
+	}
+	
+	private static void buildCopyMultiply(MethodVisitor mv, CopyMultiply cm) {
+		mv.visitVarInsn(ALOAD, LOCAL_ARRAY);
+		mv.visitVarInsn(ILOAD, LOCAL_POINTER);
+		mv.visitIntInsn(BIPUSH, cm.offset);
+		mv.visitInsn(IADD);
+		mv.visitInsn(DUP2);
+		mv.visitInsn(IALOAD);
+		mv.visitVarInsn(ALOAD, LOCAL_ARRAY);
+		mv.visitVarInsn(ILOAD, LOCAL_POINTER);
+		mv.visitInsn(IALOAD);
+		mv.visitIntInsn(BIPUSH, cm.factor);
+		mv.visitInsn(IMUL);
+		mv.visitInsn(IADD);
+		mv.visitInsn(IASTORE);
+	}
+	
+	private static void buildZero(MethodVisitor mv) {
+		mv.visitVarInsn(ALOAD, LOCAL_ARRAY);
+		mv.visitVarInsn(ILOAD, LOCAL_POINTER);
+		mv.visitInsn(ICONST_0);
+		mv.visitInsn(IASTORE);
+	}
+	
 	/**
 	 * Generate code for all commands within a Block.
 	 * @param mv
@@ -154,6 +194,15 @@ public class Compiler implements Opcodes {
 				buildRead(mv, Read.class.cast(c));
 			} else if (Write.class.isInstance(c)) {
 				buildWrite(mv, Write.class.cast(c));
+			} else if (Copy.class.isInstance(c)) {
+				buildCopy(mv, Copy.class.cast(c));
+			} else if (CopyMultiply.class.isInstance(c)) {
+				buildCopyMultiply(mv, CopyMultiply.class.cast(c));
+			} else if (Zero.class.isInstance(c)) {
+				buildZero(mv);
+			} else {
+				throw new RuntimeException("Unhandled command type: " +
+						c.getClass().getName());
 			}
 		}
 	}
@@ -238,7 +287,7 @@ public class Compiler implements Opcodes {
 		
 		buildLocals(mv, l0, className);
 		
-        mv.visitMaxs(4, 5);
+        mv.visitMaxs(10, 5);
         mv.visitEnd();
 	}
 	

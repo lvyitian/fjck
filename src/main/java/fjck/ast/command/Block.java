@@ -8,7 +8,7 @@ import fjck.interpreter.Context;
 
 public class Block implements Command {
 
-	private final List<Command> commands;
+	private List<Command> commands;
 	
 	public Block() {
 		commands = Lists.newLinkedList();
@@ -20,6 +20,10 @@ public class Block implements Command {
 	
 	public List<Command> getCommands() {
 		return commands;
+	}
+	
+	public void setCommands(List<Command> commands) {
+		this.commands = commands;
 	}
 
 	@Override

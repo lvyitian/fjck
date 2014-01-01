@@ -18,4 +18,4 @@ Code cleanup - there's some lingering cruft to be dealt with, but nothing too ho
 
 Tests of any kind are thus far non-existent.
 
-This isn't an optimizing compiler, but I'd like to at least experiment with doing that at some point.
+There's a simple optimization pass, but there's definately room for more.
